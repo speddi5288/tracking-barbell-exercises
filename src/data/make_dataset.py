@@ -184,9 +184,9 @@ data_merged.columns = [
     "gyr_x",
     "gyr_y",
     "gyr_z",
+    "participant",
     "label",
     "category",
-    "participant",
     "set",
 ]
 
@@ -205,9 +205,9 @@ sampling = {
     "gyr_x": "mean",
     "gyr_y": "mean",
     "gyr_z": "mean",
+    "participant": "last",
     "label": "last",
     "category": "last",
-    "participant": "last",
     "set": "last"
 }
 
@@ -217,7 +217,7 @@ data_merged[:1000].resample(rule="200ms").apply(sampling)
 days = [g for n, g in data_merged.groupby(pd.Grouper(freq="D"))]
 data_resampled = pd.concat([df.resample(rule="200ms").apply(sampling).dropna() for df in days])
 
-data_resampled["set"] = data_resampled["set"].astype("int")
+data_resampled["set"] = data_resampled["set"].astype("int64")
 data_resampled.info()
 
 
