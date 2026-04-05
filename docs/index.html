@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barbell Exercise Tracking — ML Project</title>
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --border: #2e2e40;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --text: #e0e0f0;
+      --muted: #888899;
+      --tag-bg: #252535;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.7;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      padding: 80px 24px 64px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 640px;
+      margin: 0 auto 32px;
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .badge {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .badge strong { color: var(--accent); }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section { padding: 60px 0; border-bottom: 1px solid var(--border); }
+    section:last-child { border-bottom: none; }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 28px;
+      color: var(--text);
+    }
+    h2 .accent { color: var(--accent); }
+
+    /* ── Pipeline Steps ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      position: relative;
+    }
+    .step-num {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.8rem;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .step h3 { font-size: 1rem; margin-bottom: 8px; }
+    .step p { font-size: 0.88rem; color: var(--muted); }
+    .step code {
+      display: inline-block;
+      background: var(--tag-bg);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-top: 8px;
+    }
+
+    /* ── Stats ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+    }
+    .stat-card .num {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat-card .label { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+
+    /* ── Exercises table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th {
+      background: var(--tag-bg);
+      padding: 12px 16px;
+      text-align: left;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    td { padding: 12px 16px; border-top: 1px solid var(--border); }
+    tr:hover td { background: var(--surface); }
+    .pill {
+      display: inline-block;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-family: monospace;
+    }
+    .hz { color: var(--accent2); font-weight: 600; }
+
+    /* ── Model results ── */
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .model-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .model-card.best { border-color: var(--accent); }
+    .model-card h3 { font-size: 0.95rem; margin-bottom: 6px; }
+    .model-card p { font-size: 0.82rem; color: var(--muted); }
+    .model-card .best-tag {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    /* ── Figures gallery ── */
+    .gallery-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 16px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover, .tab-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .gallery-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: none;
+    }
+    .gallery-item.visible { display: block; }
+    .gallery-item img {
+      width: 100%;
+      display: block;
+      background: #fff;
+    }
+    .gallery-item .fig-label {
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* ── Tech stack ── */
+    .tech-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .tech-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 0.88rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <h1>Barbell Exercise <span>Tracking</span></h1>
+  <p>Classifying gym exercises and counting reps from wearable accelerometer &amp; gyroscope sensor data using machine learning.</p>
+  <div class="badge-row">
+    <div class="badge"><strong>Python</strong> 3.8</div>
+    <div class="badge"><strong>scikit-learn</strong></div>
+    <div class="badge"><strong>SciPy</strong> Signal Processing</div>
+    <div class="badge"><strong>187</strong> sensor files</div>
+    <div class="badge"><strong>6</strong> exercise classes</div>
+    <div class="badge"><strong>5</strong> participants</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ── Stats ── -->
+  <section>
+    <h2><span class="accent">#</span> Project at a Glance</h2>
+    <div class="stats">
+      <div class="stat-card"><div class="num">187</div><div class="label">Raw Sensor Files</div></div>
+      <div class="stat-card"><div class="num">6</div><div class="label">Exercise Classes</div></div>
+      <div class="stat-card"><div class="num">50+</div><div class="label">Engineered Features</div></div>
+      <div class="stat-card"><div class="num">6</div><div class="label">ML Models Compared</div></div>
+      <div class="stat-card"><div class="num">5</div><div class="label">Participants</div></div>
+      <div class="stat-card"><div class="num">200ms</div><div class="label">Resample Interval</div></div>
+    </div>
+
+    <p style="color: var(--muted); font-size:0.95rem; max-width:720px;">
+      This end-to-end data science pipeline takes raw CSV output from a <strong>MetaWear</strong> wearable sensor and produces
+      a trained classifier that can identify which barbell exercise a lifter is performing — and count how many reps they have done.
+    </p>
+  </section>
+
+  <!-- ── Pipeline ── -->
+  <section>
+    <h2><span class="accent">#</span> Pipeline</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Data Collection &amp; Merging</h3>
+        <p>187 CSV files (accelerometer 12.5 Hz + gyroscope 25 Hz) loaded, labeled from filenames, merged, and resampled to a uniform 200ms interval.</p>
+        <code>make_dataset.py</code>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Outlier Removal</h3>
+        <p>Three methods compared (IQR, Chauvenet's Criterion, LOF). <strong>Chauvenet's Criterion</strong> selected for per-label robustness.</p>
+        <code>remove_outliers.py</code>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Feature Engineering</h3>
+        <p>Butterworth low-pass filter → PCA → magnitude features → rolling statistics → FFT frequency features → K-Means cluster labels.</p>
+        <code>build_features.py</code>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Model Training</h3>
+        <p>6 classifiers × 5 feature sets evaluated with grid search. Participant-based split tests real-world generalization.</p>
+        <code>train_model.py</code>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <h3>Rep Counting</h3>
+        <p>Exercise-specific low-pass filter + peak detection on acceleration or gyroscope magnitude, tuned per movement pattern.</p>
+        <code>count_repetitions.py</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Exercises ── -->
+  <section>
+    <h2><span class="accent">#</span> Exercises &amp; Rep Counting Parameters</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Exercise</th>
+          <th>Signal Used</th>
+          <th>Filter Cutoff</th>
+          <th>Sets (Heavy / Medium)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Bench Press</td>
+          <td><span class="pill">acc_r</span></td>
+          <td><span class="hz">0.4 Hz</span></td>
+          <td>5 reps / 10 reps</td>
+        </tr>
+        <tr>
+          <td>Back Squat</td>
+          <td><span class="pill">acc_r</span></td>
+          <td><span class="hz">0.35 Hz</span></td>
+          <td>5 reps / 10 reps</td>
+        </tr>
+        <tr>
+          <td>Deadlift</td>
+          <td><span class="pill">acc_r</span></td>
+          <td><span class="hz">0.4 Hz</span></td>
+          <td>5 reps / 10 reps</td>
+        </tr>
+        <tr>
+          <td>Overhead Press</td>
+          <td><span class="pill">acc_r</span></td>
+          <td><span class="hz">0.35 Hz</span></td>
+          <td>5 reps / 10 reps</td>
+        </tr>
+        <tr>
+          <td>Barbell Row</td>
+          <td><span class="pill">gyr_x</span></td>
+          <td><span class="hz">0.65 Hz</span></td>
+          <td>5 reps / 10 reps</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="color:var(--muted); font-size:0.82rem; margin-top:12px;">
+      <em>Note: Barbell row uses the gyroscope x-axis (rotation) rather than linear acceleration magnitude, as the torso hinge produces a stronger rotational signal.</em>
+    </p>
+  </section>
+
+  <!-- ── Models ── -->
+  <section>
+    <h2><span class="accent">#</span> Models Compared</h2>
+    <div class="models-grid">
+      <div class="model-card best">
+        <div class="best-tag">BEST</div>
+        <h3>Random Forest</h3>
+        <p>Ensemble of decision trees. Best performance with full feature set (temporal + frequency + clustering).</p>
+      </div>
+      <div class="model-card">
+        <h3>Neural Network (MLP)</h3>
+        <p>Multi-layer perceptron with grid-search tuned hidden layer sizes and activation functions.</p>
+      </div>
+      <div class="model-card">
+        <h3>K-Nearest Neighbors</h3>
+        <p>Non-parametric classifier, tuned on number of neighbors.</p>
+      </div>
+      <div class="model-card">
+        <h3>Decision Tree</h3>
+        <p>Single interpretable tree, good baseline with fast inference.</p>
+      </div>
+      <div class="model-card">
+        <h3>Naive Bayes</h3>
+        <p>Probabilistic classifier, fastest training but assumes feature independence.</p>
+      </div>
+      <div class="model-card">
+        <h3>SVM</h3>
+        <p>Tested with both linear and RBF kernel for non-linear decision boundaries.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:28px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px;">
+      <h3 style="margin-bottom:12px; font-size:1rem;">Feature Sets Evaluated</h3>
+      <table>
+        <thead>
+          <tr><th>Set</th><th>Features Included</th><th>Approx. Feature Count</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Raw accelerometer + gyroscope (6 axes)</td><td>6</td></tr>
+          <tr><td>2</td><td>+ Squared features, PCA components</td><td>11</td></tr>
+          <tr><td>3</td><td>+ Temporal rolling mean &amp; std</td><td>37</td></tr>
+          <tr><td>4</td><td>+ FFT frequency features, cluster labels</td><td>50+</td></tr>
+          <tr><td>Selected</td><td>Top 10 via forward selection algorithm</td><td>10</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Feature Engineering Detail ── -->
+  <section>
+    <h2><span class="accent">#</span> Feature Engineering Detail</h2>
+    <div class="steps">
+      <div class="step">
+        <h3>Butterworth Low-Pass Filter</h3>
+        <p>Cutoff: 1.2 Hz, order 5. Zero-phase filtering (filtfilt) eliminates timing artifacts. Removes high-frequency noise while preserving exercise motion patterns.</p>
+      </div>
+      <div class="step">
+        <h3>Principal Component Analysis</h3>
+        <p>6 raw sensor axes reduced to 3 orthogonal principal components, capturing maximum variance while removing redundancy between accelerometer axes.</p>
+      </div>
+      <div class="step">
+        <h3>Magnitude Features</h3>
+        <p><code>acc_r = √(x² + y² + z²)</code><br><code>gyr_r = √(x² + y² + z²)</code><br>Rotation-invariant measures of overall movement intensity.</p>
+      </div>
+      <div class="step">
+        <h3>Temporal Abstraction</h3>
+        <p>Rolling window (size = 5 samples = 1 second) computes mean and standard deviation for each feature — capturing movement rhythm over time.</p>
+      </div>
+      <div class="step">
+        <h3>FFT Frequency Features</h3>
+        <p>Window = 14 samples (~2.8s, matching average rep duration). Extracts per-frequency amplitudes, weighted mean frequency, and power spectral entropy.</p>
+      </div>
+      <div class="step">
+        <h3>K-Means Clustering</h3>
+        <p>5 clusters fitted on acceleration data. Cluster label added as a categorical feature, providing a data-driven motion signature grouping.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Figures ── -->
+  <section>
+    <h2><span class="accent">#</span> Sensor Data Visualizations</h2>
+    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">
+      Each plot shows accelerometer (top) and gyroscope (bottom) readings for one exercise-participant combination. Distinct motion signatures are visible across exercises.
+    </p>
+
+    <div class="gallery-tabs">
+      <button class="tab-btn active" onclick="filterGallery('all', this)">All</button>
+      <button class="tab-btn" onclick="filterGallery('bench', this)">Bench Press</button>
+      <button class="tab-btn" onclick="filterGallery('dead', this)">Deadlift</button>
+      <button class="tab-btn" onclick="filterGallery('ohp', this)">Overhead Press</button>
+      <button class="tab-btn" onclick="filterGallery('row', this)">Barbell Row</button>
+      <button class="tab-btn" onclick="filterGallery('squat', this)">Squat</button>
+      <button class="tab-btn" onclick="filterGallery('rest', this)">Rest</button>
+    </div>
+
+    <div class="gallery" id="gallery">
+      <!-- Bench -->
+      <div class="gallery-item visible" data-cat="bench">
+        <img src="../reports/figures/Bench (A).png" alt="Bench Press Participant A" loading="lazy" />
+        <div class="fig-label">Bench Press — Participant A</div>
+      </div>
+      <div class="gallery-item visible" data-cat="bench">
+        <img src="../reports/figures/Bench (B).png" alt="Bench Press Participant B" loading="lazy" />
+        <div class="fig-label">Bench Press — Participant B</div>
+      </div>
+      <div class="gallery-item visible" data-cat="bench">
+        <img src="../reports/figures/Bench (C).png" alt="Bench Press Participant C" loading="lazy" />
+        <div class="fig-label">Bench Press — Participant C</div>
+      </div>
+      <div class="gallery-item visible" data-cat="bench">
+        <img src="../reports/figures/Bench (D).png" alt="Bench Press Participant D" loading="lazy" />
+        <div class="fig-label">Bench Press — Participant D</div>
+      </div>
+      <div class="gallery-item visible" data-cat="bench">
+        <img src="../reports/figures/Bench (E).png" alt="Bench Press Participant E" loading="lazy" />
+        <div class="fig-label">Bench Press — Participant E</div>
+      </div>
+      <!-- Deadlift -->
+      <div class="gallery-item visible" data-cat="dead">
+        <img src="../reports/figures/Dead (A).png" alt="Deadlift Participant A" loading="lazy" />
+        <div class="fig-label">Deadlift — Participant A</div>
+      </div>
+      <div class="gallery-item visible" data-cat="dead">
+        <img src="../reports/figures/Dead (C).png" alt="Deadlift Participant C" loading="lazy" />
+        <div class="fig-label">Deadlift — Participant C</div>
+      </div>
+      <div class="gallery-item visible" data-cat="dead">
+        <img src="../reports/figures/Dead (E).png" alt="Deadlift Participant E" loading="lazy" />
+        <div class="fig-label">Deadlift — Participant E</div>
+      </div>
+      <!-- OHP -->
+      <div class="gallery-item visible" data-cat="ohp">
+        <img src="../reports/figures/Ohp (A).png" alt="OHP Participant A" loading="lazy" />
+        <div class="fig-label">Overhead Press — Participant A</div>
+      </div>
+      <div class="gallery-item visible" data-cat="ohp">
+        <img src="../reports/figures/Ohp (B).png" alt="OHP Participant B" loading="lazy" />
+        <div class="fig-label">Overhead Press — Participant B</div>
+      </div>
+      <div class="gallery-item visible" data-cat="ohp">
+        <img src="../reports/figures/Ohp (C).png" alt="OHP Participant C" loading="lazy" />
+        <div class="fig-label">Overhead Press — Participant C</div>
+      </div>
+      <div class="gallery-item visible" data-cat="ohp">
+        <img src="../reports/figures/Ohp (E).png" alt="OHP Participant E" loading="lazy" />
+        <div class="fig-label">Overhead Press — Participant E</div>
+      </div>
+      <!-- Row -->
+      <div class="gallery-item visible" data-cat="row">
+        <img src="../reports/figures/Row (A).png" alt="Row Participant A" loading="lazy" />
+        <div class="fig-label">Barbell Row — Participant A</div>
+      </div>
+      <div class="gallery-item visible" data-cat="row">
+        <img src="../reports/figures/Row (C).png" alt="Row Participant C" loading="lazy" />
+        <div class="fig-label">Barbell Row — Participant C</div>
+      </div>
+      <div class="gallery-item visible" data-cat="row">
+        <img src="../reports/figures/Row (D).png" alt="Row Participant D" loading="lazy" />
+        <div class="fig-label">Barbell Row — Participant D</div>
+      </div>
+      <div class="gallery-item visible" data-cat="row">
+        <img src="../reports/figures/Row (E).png" alt="Row Participant E" loading="lazy" />
+        <div class="fig-label">Barbell Row — Participant E</div>
+      </div>
+      <!-- Squat -->
+      <div class="gallery-item visible" data-cat="squat">
+        <img src="../reports/figures/Squat (A).png" alt="Squat Participant A" loading="lazy" />
+        <div class="fig-label">Back Squat — Participant A</div>
+      </div>
+      <div class="gallery-item visible" data-cat="squat">
+        <img src="../reports/figures/Squat (B).png" alt="Squat Participant B" loading="lazy" />
+        <div class="fig-label">Back Squat — Participant B</div>
+      </div>
+      <div class="gallery-item visible" data-cat="squat">
+        <img src="../reports/figures/Squat (C).png" alt="Squat Participant C" loading="lazy" />
+        <div class="fig-label">Back Squat — Participant C</div>
+      </div>
+      <div class="gallery-item visible" data-cat="squat">
+        <img src="../reports/figures/Squat (D).png" alt="Squat Participant D" loading="lazy" />
+        <div class="fig-label">Back Squat — Participant D</div>
+      </div>
+      <div class="gallery-item visible" data-cat="squat">
+        <img src="../reports/figures/Squat (E).png" alt="Squat Participant E" loading="lazy" />
+        <div class="fig-label">Back Squat — Participant E</div>
+      </div>
+      <!-- Rest -->
+      <div class="gallery-item visible" data-cat="rest">
+        <img src="../reports/figures/Rest (A).png" alt="Rest Participant A" loading="lazy" />
+        <div class="fig-label">Rest — Participant A</div>
+      </div>
+      <div class="gallery-item visible" data-cat="rest">
+        <img src="../reports/figures/Rest (E).png" alt="Rest Participant E" loading="lazy" />
+        <div class="fig-label">Rest — Participant E</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Tech Stack ── -->
+  <section>
+    <h2><span class="accent">#</span> Tech Stack</h2>
+    <div class="tech-grid">
+      <div class="tech-chip">Python 3.8</div>
+      <div class="tech-chip">Pandas</div>
+      <div class="tech-chip">NumPy</div>
+      <div class="tech-chip">scikit-learn</div>
+      <div class="tech-chip">SciPy</div>
+      <div class="tech-chip">Matplotlib</div>
+      <div class="tech-chip">MetaWear Sensor</div>
+      <div class="tech-chip">Butterworth Filter</div>
+      <div class="tech-chip">FFT</div>
+      <div class="tech-chip">PCA</div>
+      <div class="tech-chip">K-Means</div>
+      <div class="tech-chip">Random Forest</div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  <p>Barbell Exercise Tracking &mdash; End-to-end ML pipeline for wearable sensor data</p>
+  <p style="margin-top:6px;"><a href="https://github.com/speddi5288/tracking-barbell-exercises">View on GitHub</a></p>
+</footer>
+
+<script>
+  function filterGallery(cat, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.gallery-item').forEach(item => {
+      if (cat === 'all' || item.dataset.cat === cat) {
+        item.classList.add('visible');
+      } else {
+        item.classList.remove('visible');
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
