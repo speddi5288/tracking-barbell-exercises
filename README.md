@@ -1,5 +1,7 @@
 # Barbell Exercise Tracking with Wearable Sensors
 
+**Live Site:** [https://speddi5288.github.io/tracking-barbell-exercises](https://speddi5288.github.io/tracking-barbell-exercises)
+
 A machine learning pipeline that classifies barbell exercises and counts repetitions using accelerometer and gyroscope data from a MetaMotion wearable sensor.
 
 ---
